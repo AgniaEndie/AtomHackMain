@@ -1,0 +1,1 @@
+CREATE DATABASE IF NOT EXISTS camera-registry (CREATE TABLE IF NOT EXISTS cameras(uuid varchar(255),ip_external varchar(255)))

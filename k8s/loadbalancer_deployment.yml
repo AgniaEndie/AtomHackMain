@@ -1,3 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |
+    events {}
+    http {
+       upstream backend {
+          server 10.1.0.101;
+          server 10.1.0.102;
+          server 10.1.0.103;
+       }
+
+       # This server accepts all traffic to port 80 and passes it to the upstream.
+       # Notice that the upstream name and the proxy_pass need to match.
+
+       server {
+          listen 80;
+
+          location / {
+              proxy_pass http://backend;
+          }
+       }
+    }
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,3 +44,26 @@ spec:
           image: nginx:1.27.0
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort
+---

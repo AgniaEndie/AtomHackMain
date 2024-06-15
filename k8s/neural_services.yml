@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-to-image-deployment
+spec:
+  selector:
+    matchLabels:
+      app: stream-to-image
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: stream-to-image
+    spec:
+      containers:
+        - name: stream-to-image
+          image: endienasg/stream-to-image:main
+          ports:
+            - containerPort: 8080
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-resize-deployment
+spec:
+  selector:
+    matchLabels:
+      app: image-resize
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: image-resize
+    spec:
+      containers:
+        - name: image-resize
+          image: endienasg/image-resize:main
+          ports:
+            - containerPort: 8081
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-to-object-deployment
+spec:
+  selector:
+    matchLabels:
+      app: image-to-object
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: image-to-object
+    spec:
+      containers:
+        - name: image-to-object
+          image: endienasg/image-to-object:main
+          ports:
+            - containerPort: 8082
+---
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-resize-service
+spec:
+  selector:
+    app: image-resize
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8081
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: stream-to-object-service
+spec:
+  selector:
+    app: stream-to-image
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-to-object-service
+spec:
+  selector:
+    app: image-to-object
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8082
+      nodePort: 30083
+  type: NodePort
